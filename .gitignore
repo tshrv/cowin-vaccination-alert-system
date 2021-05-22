@@ -1,6 +1,5 @@
-# Security
+# Certificates
 certificates/*.pem
-
 
 # Editor - Pycharm
 .idea/
