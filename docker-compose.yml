@@ -3,7 +3,12 @@ version: "3.3"
 services:
   web:
     build: .
-    command: uvicorn src.main:app --reload --host 0.0.0.0 --port 8000 --ssl-keyfile=./certificates/privkey.pem --ssl-certfile=./certificates/fullchain.pem
+    command: uvicorn src.main:app
+      --reload
+      --host 0.0.0.0
+      --port 8000
+      --ssl-keyfile=./certificates/privkey.pem
+      --ssl-certfile=./certificates/fullchain.pem
     volumes:
       - .:/app
     ports:
