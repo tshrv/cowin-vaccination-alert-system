@@ -1,8 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Query, Request
-from src.utils.logging import get_logger
+from src.utils.logging import logger
 import asyncio
 
-logger = get_logger()
 router = APIRouter()
 
 

@@ -1,9 +1,6 @@
 from src import settings
 from fastapi import FastAPI
-from src.utils.logging import get_logger
-
-
-logger = get_logger()
+from src.utils.logging import logger
 
 
 class MiddlewareLoader:
