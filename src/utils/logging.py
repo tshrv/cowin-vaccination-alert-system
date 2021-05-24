@@ -8,7 +8,6 @@ class Logger:
 
     @staticmethod
     def get_singleton_instance():
-        print(f'singleton-instance {Logger._logger_instance}')
         if not Logger._logger_instance:
             Logger._logger_instance = Logger().logger
         return Logger._logger_instance
