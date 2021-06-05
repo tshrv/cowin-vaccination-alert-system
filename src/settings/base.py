@@ -1,5 +1,6 @@
 import os
 import logging
+from decouple import config
 
 
 APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,5 +25,7 @@ LOG_STREAM_HANDLER_ENABLED = False
 MIDDLEWARES = []
 
 # Database
-DB_CONNECTION_STRING = 'mongodb://localhost:27017'
+DB_CONTAINER_NAME = config('DB_CONTAINER_NAME')
 DB_NAME = 'cvas'
+DB_PORT = config('DB_PORT')
+DB_CONNECTION_STRING = f'mongodb://{DB_CONTAINER_NAME}:{DB_PORT}'
