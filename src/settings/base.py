@@ -3,10 +3,10 @@ import logging
 
 
 APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# /path/to/cowin-vaccination-alert-system/src
+# /path/to/cvas/src
 
 ROOT_DIR = os.path.dirname(APP_DIR)
-# /path/to/cowin-vaccination-alert-system
+# /path/to/cvas
 
 STATIC_DIR = 'static'
 STATIC_DIR_PATH = os.path.join(APP_DIR, STATIC_DIR)

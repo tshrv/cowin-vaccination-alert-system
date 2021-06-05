@@ -7,8 +7,8 @@ services:
       --reload
       --host 0.0.0.0
       --port 8000
-      --ssl-keyfile=./certificates/privkey.pem
-      --ssl-certfile=./certificates/fullchain.pem
+      --ssl-keyfile=./certificates/cvas.tshrv.in/privkey.pem
+      --ssl-certfile=./certificates/cvas.tshrv.in/fullchain.pem
     volumes:
       - .:/app
     ports:
