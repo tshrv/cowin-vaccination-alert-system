@@ -4,7 +4,7 @@ from src import settings
 from fastapi.staticfiles import StaticFiles
 from src.middlewares import MiddlewareLoader
 
-app = FastAPI(title='iCVAS')
+app = FastAPI(title='CVAS')
 
 # middlewares
 middleware_loader = MiddlewareLoader(app)
