@@ -7,7 +7,5 @@ services:
       --reload
       --host $CONTAINER_HOST
       --port $CONTAINER_PORT
-    volumes:
-      - .:/app
     ports:
       - "$HOST_PORT:$CONTAINER_PORT"

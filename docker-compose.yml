@@ -5,11 +5,11 @@ services:
     build: .
     command: uvicorn src.main:app
       --reload
-      --host 0.0.0.0
-      --port 8000
-      --ssl-keyfile=./certificates/cvas.tshrv.in/privkey.pem
-      --ssl-certfile=./certificates/cvas.tshrv.in/fullchain.pem
+      --host $CONTAINER_HOST
+      --port $CONTAINER_PORT
+      --ssl-keyfile=$SSL_KEY_FILE
+      --ssl-certfile=$SSL_CERT_FILE
     volumes:
-      - .:/app
+      - /etc/letsencrypt/:/etc/letsencrypt/
     ports:
-      - "443:8000"
+      - "$HOST_PORT:$CONTAINER_PORT"
