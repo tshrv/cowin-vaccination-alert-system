@@ -20,3 +20,9 @@ LOG_FILE_PATH = os.path.join(ROOT_DIR, LOG_FILE_NAME)
 LOG_LEVEL = logging.DEBUG
 LOG_FORMAT = '%(asctime)s - %(message)s'
 LOG_STREAM_HANDLER_ENABLED = False
+
+MIDDLEWARES = []
+
+# Database
+DB_CONNECTION_STRING = 'mongodb://localhost:27017'
+DB_NAME = 'cvas'

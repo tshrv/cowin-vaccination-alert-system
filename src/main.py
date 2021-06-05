@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from src.routers import v1, pages
 from src import settings
 from fastapi.staticfiles import StaticFiles
+from src.middlewares import MiddlewareLoader
 
 app = FastAPI(title='iCVAS')
+
+# middlewares
+middleware_loader = MiddlewareLoader(app)
+middleware_loader.load()
 
 # serve static files
 app.mount(
