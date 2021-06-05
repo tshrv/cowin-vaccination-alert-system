@@ -22,3 +22,7 @@ LOG_FORMAT = '%(asctime)s - %(message)s'
 LOG_STREAM_HANDLER_ENABLED = False
 
 MIDDLEWARES = []
+
+# Database
+DB_CONNECTION_STRING = 'mongodb://localhost:27017'
+DB_NAME = 'cvas'

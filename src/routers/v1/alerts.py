@@ -1,41 +1,42 @@
-import asyncio
-from datetime import datetime
+from typing import List
 
 from fastapi import APIRouter, BackgroundTasks, Request
 
-from src.models.users import User
+from src.models.alerts import AlertTask
 from src.utils.logging import logger
+from starlette import status
+from src.crud.alerts import AlertTaskCRUD
 
 router = APIRouter()
 
 
-async def monitor_slot(task_uid: int, user: User):
-    while True:
-        await check_slot_availability(task_uid, user)
-        await asyncio.sleep(5)
-
-
-async def check_slot_availability(task_uid, user):
-    try:
-        logger.info(f'uid_{task_uid} Checking availability for {user.name}')
-        raise Exception('Some error occurred')
-    except Exception as e:
-        logger.exception(e)
-
-
-@router.post('/')
-async def set_alert(request: Request, background_tasks: BackgroundTasks,
-                    user: User):
+@router.post('/', status_code=status.HTTP_201_CREATED)
+async def create_alert(request: Request, background_tasks: BackgroundTasks,
+                       alert_task: AlertTask):
     """
+    create alert_task with status active
     :param request:
     :param background_tasks:
-    :param user:
+    :param alert_task:
     :return:
     """
+    logger.info(f'Create Alert: {alert_task.full_name} {alert_task.email} {alert_task.phone}')
+    alert_task_crud = AlertTaskCRUD()
+    alert_task_crud.create(alert_task)
+    return {}
 
-    # task uid be epoch timestamp
-    task_uid = int(datetime.now().timestamp())
-    background_tasks.add_task(monitor_slot, task_uid=task_uid, user=user)
 
-    return {'message': f'Hi {user.name}! Your request has been received'}
-
+@router.get('/', status_code=status.HTTP_200_OK)
+async def get_alert(request: Request, background_tasks: BackgroundTasks,
+                    email: str) -> List[AlertTask]:
+    """
+    get alerts by email
+    :param request:
+    :param background_tasks:
+    :param email:
+    :return:
+    """
+    logger.info(f'Get Alert: {email}')
+    alert_task_crud = AlertTaskCRUD()
+    alert_tasks = alert_task_crud.get(email=email)
+    return alert_tasks
