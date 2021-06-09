@@ -4,7 +4,9 @@ services:
 
   web:
     container_name: web_service
-    build: .
+    build:
+      dockerfile: ./Dockerfile.dev
+      context: .
     command: uvicorn src.main:app
       --reload
       --host $CONTAINER_HOST
@@ -15,5 +17,7 @@ services:
   db:
     container_name: $DB_CONTAINER_NAME
     image: mongo:latest
+    ports:
+      - "27017:27017"
     volumes:
     - ${MONGO_DATA_DIR}:/data/db/
