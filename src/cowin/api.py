@@ -20,12 +20,16 @@ class CowinAPI(BaseApi):
                                  date: str, min_age_limit: int,
                                  vaccine: Optional[Vaccine] = None,
                                  dose: Optional[Dose] = None):
-        """this function is called by the get availability function
+        """
+        this function is called by the get availability function
         this is separated out so that the parent functions have the same
-        structure and development becomes easier"""
-        area_type, base_url = 'pincode', Constants.availability_by_pin_code_url
+        structure and development becomes easier
+        """
         if caller == 'district':
             area_type, base_url = 'district_id', Constants.availability_by_district_url
+        else:
+            area_type, base_url = 'pincode', Constants.availability_by_pin_code_url
+
         # if the areas is a str, convert to list
         if isinstance(areas, str):
             areas = [areas]
@@ -59,11 +63,11 @@ class CowinAPI(BaseApi):
                                              date=date, min_age_limit=min_age_limit,
                                              vaccine=vaccine, dose=dose)
 
-    def get_availability_by_pincode(self, pin_code: Union[str, List[str]],
-                                    date: str = today(),
-                                    min_age_limit: int = None,
-                                    vaccine: Optional[Vaccine] = None,
-                                    dose: Optional[Dose] = None):
-        return self.get_availability_by_base(caller='pincode', areas=pin_code,
+    def get_availability_by_pin_code(self, pin_code: Union[str, List[str]],
+                                     date: str = today(),
+                                     min_age_limit: Optional[int] = None,
+                                     vaccine: Optional[Vaccine] = None,
+                                     dose: Optional[Dose] = None):
+        return self.get_availability_by_base(caller='pin_code', areas=pin_code,
                                              date=date, min_age_limit=min_age_limit,
                                              vaccine=vaccine, dose=dose)

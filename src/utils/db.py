@@ -12,7 +12,7 @@ class DBClient:
 
     @staticmethod
     def get_singleton_instance():
-        logger.info('DB: Requesting client')
+        logger.info('database: Requesting client')
         if not DBClient._client_instance:
             DBClient._client_instance = DBClient().client
         return DBClient._client_instance
@@ -30,9 +30,9 @@ class DBClient:
         """
         :return: None
         """
-        logger.info('DB: establishing connection')
+        logger.info('database: establishing connection')
         self._client = MongoClient(settings.DB_CONNECTION_STRING).get_database(settings.DB_NAME)
-        logger.info('DB: connection established')
+        logger.info('database: connection established')
 
 
 db_client = DBClient.get_singleton_instance()
