@@ -1,9 +1,9 @@
+from datetime import datetime
 from typing import List
 
-
-from .base import BaseCRUD
 from src.models.notifications import Notification
-from ..utils.validators import ObjectId
+from src.utils.validators import ObjectId
+from .base import BaseCRUD
 
 
 class NotificationCRUD(BaseCRUD):
@@ -51,17 +51,31 @@ class NotificationCRUD(BaseCRUD):
         )
         return rsp
 
-    def get(self, email: str) -> List[Notification]:
+    def get(self, phone: str, message: str, created_at: datetime = None) -> List[Notification]:
         """
-        :param email: user email
+        :param phone: user phone
+        :param message: message content
+        :param created_at:
         :return: all records available for that email
         """
-        cursor = self.collection.find(
-            {
-                'email': {
-                    '$eq': email
+        query_dict = {
+            'phone': {
+                '$eq': phone
+            },
+            'message': {
+                '$eq': message
+            },
+        }
+        if created_at:
+            query_dict.update(
+                created_at={
+                    '$gt': created_at
                 }
-            }
+            )
+        cursor = self.collection.find(
+            query_dict
         )
         notifications = self._build_notification_objects(cursor)
+        print(notifications)
         return notifications
+

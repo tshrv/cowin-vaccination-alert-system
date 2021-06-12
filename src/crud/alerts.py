@@ -1,8 +1,8 @@
 from typing import List
 
-from .base import BaseCRUD
 from src.models.alerts import Alert
 from src.models.constants import AlertStatus
+from .base import BaseCRUD
 
 
 class AlertCRUD(BaseCRUD):

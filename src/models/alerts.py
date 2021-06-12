@@ -1,7 +1,9 @@
+from datetime import datetime
 from typing import List, Optional, Union
 
 from pydantic import EmailStr, Field
 
+from src import settings
 from src.utils.validators import ObjectId
 from .base import SerializableBaseModel
 from .constants import AlertStatus, Dose, Vaccine
@@ -20,3 +22,4 @@ class AlertIn(SerializableBaseModel):
 
 class Alert(AlertIn):
     id: ObjectId = Field(..., alias='_id')
+    created_at: datetime = datetime.now(settings.TIMEZONE)

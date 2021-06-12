@@ -1,4 +1,6 @@
 import logging
+import os
+
 from src import settings
 from typing import Optional
 
@@ -28,6 +30,9 @@ class Logger:
         """
         :return: None
         """
+
+        os.mkdir(settings.LOG_FILE_DIR)
+
         if self._logger:
             return
 

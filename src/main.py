@@ -28,11 +28,11 @@ app.include_router(v1.router, prefix='/v1')
 app.include_router(pages.router, prefix='')
 
 
-# @app.on_event('startup')
-# async def app_startup():
-#     logger.info('app_startup triggered')
-#     await bootstrap_schedulers()
-#
+@app.on_event('startup')
+async def app_startup():
+    logger.info('app_startup triggered')
+    await bootstrap_schedulers()
+
 #
 # @app.on_event('shutdown')
 # async def app_shutdown():
