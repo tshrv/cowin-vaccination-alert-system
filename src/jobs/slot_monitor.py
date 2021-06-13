@@ -1,78 +1,105 @@
+import asyncio
+
+from src import settings
 from src.cowin import CowinAPI
 from src.cowin.constants import Dose, Vaccine
-from src.crud.notifications import NotificationCRUD
 from src.crud.alerts import AlertCRUD
-from src.models.notifications import Notification
+from src.crud.notifications import NotificationCRUD
+from src.models.notifications import NotificationIn
 from src.utils.logging import logger
-import asyncio
+from src.utils.sms import twilio_client
 
 
 async def slot_monitor():
     """
     :return:
     """
-    logger.info('slot-monitor: Started')
+    logger.info('slot-monitor: started')
 
-    alert_task_crud = AlertCRUD()
-    alert_notification_crud = NotificationCRUD()
+    alert_crud = AlertCRUD()
+    notification_crud = NotificationCRUD()
     cowin = CowinAPI()
 
-    alert_tasks = alert_task_crud.get_alerts_for_monitoring()
+    while True:
+        alerts = alert_crud.get_alerts_for_monitoring()
+        len_alerts = len(alerts)
+        logger.info(f'slot-monitor: {len_alerts} alert(s) found')
 
-    # loop over alert tasks
-    for alert_task in alert_tasks:
-        # build filter
-        query_filters = {
-            'pin_code': alert_task.pin_code,
-            'min_age_limit': alert_task.min_age_limit,
-            'vaccine': Vaccine(alert_task.vaccine),
-            'dose': Dose(alert_task.dose),
-        }
+        # loop over alert tasks
+        for alert in alerts:
+            # build filter
+            query_filters = {
+                'pin_code': alert.pin_code,
+                'min_age_limit': alert.min_age_limit,
+                'vaccine': Vaccine(alert.vaccine),
+                'dose': Dose(alert.dose),
+            }
 
-        # query api and filter
-        data = cowin.get_availability_by_pin_code(**query_filters)
+            # query api and filter
+            data = cowin.get_availability_by_pin_code(**query_filters)
 
-        # construct alert message
-        centers = data.get('centers', [])
+            # construct alert message
+            centers = data.get('centers', [])
 
-        if not centers:
-            logger.info(f'slot-monitor: {alert_task.email} - No slots available')
-            continue
+            if not centers:
+                logger.info(f'slot-monitor: {alert.email} - no slots available')
+                continue
 
-        logger.info(f'slot-monitor: {alert_task.email} - Slots available')
-        logger.info(f'slot-monitor: {alert_task.email} - Preparing to send alert')
+            logger.info(f'slot-monitor: {alert.email} - slots available, preparing to send alert')
 
-        message = 'Hey! Vaccination slots are available, book your appointment now.\n'
-        for center in centers:
-            message = f'{center.get("name"), center.get("address")}\n'
-            for session in center.get('sessions', []):
-                message += f'{session.get("vaccine")}: {session.get("date")}\n'
-                if alert_task.dose in [Dose.FIRST.value, None]:
-                    message += f'Dose 1: {session.get(Dose.FIRST.value)}\n'
-                if alert_task.dose in [Dose.SECOND.value, None]:
-                    message += f'Dose 2: {session.get(Dose.SECOND.value)}\n'
+            message = '\nHey! Vaccination slots are available, book your appointment now.\n'
+            for center in centers:
+                message += f'{center.get("name")}, {center.get("address")}\n'
+                for session in center.get('sessions', []):
+                    message += f'{session.get("vaccine")}: {session.get("date")}\n'
+                    if alert.dose in [Dose.FIRST.value, None]:
+                        message += f'Dose 1: {session.get(Dose.FIRST.value)}\n'
+                    if alert.dose in [Dose.SECOND.value, None]:
+                        message += f'Dose 2: {session.get(Dose.SECOND.value)}\n'
 
-        # message sender
-        message += '- Sent via CVAS'
+            # message sender
+            message += '- Sent via CVAS'
 
-        # save alert entry
-        alert_notification_obj = Notification(
-            email=alert_task.email,
-            message=message,
-        )
-        alert_notification_obj = alert_notification_crud.create(alert_notification_obj)
+            # send alert only if current alert message was not sent previously in resend window
+            previously_sent = notification_crud.previously_sent(
+                phone=alert.phone,
+                message=message,
+            )
 
-        try:
-            # send alert
-            logger.info(f'slot-monitor: {alert_task.email} - Alert sent')
+            if previously_sent:
+                logger.info(f'slot-monitor: {alert.email} - last sent under {settings.RESEND_WINDOW} '
+                            f'seconds, alert ignored')
 
-            # update alert entry, successfully sent
-            alert_notification_obj = alert_notification_crud.mark_sent(alert_notification_obj.id)
-        except Exception as e:
-            logger.error(f'slot-monitor: {alert_task.email} - Failed to send alert')
-            logger.exception(e)
+            else:
+                # save alert entry
+                notification = NotificationIn(
+                    email=alert.email,
+                    phone=alert.phone,
+                    message=message,
+                )
+                notification_id = notification_crud.create(notification)
 
-    # sleep for 3 seconds
-    await asyncio.sleep(3)
+                try:
+                    # send alert
+                    message_sent = twilio_client.send_message(
+                        recipient=alert.phone,
+                        body=message
+                    )
+                    if message_sent:
+                        logger.info(f'slot-monitor: {alert.email} - alert sent')
+                    else:
+                        logger.error(f'slot-monitor: {alert.email} - failed to send alert')
 
-    logger.info('slot-monitor: Stopped')
+                    # update alert entry, successfully sent
+                    notification_crud.mark_sent(notification_id)
+                except Exception as e:
+                    logger.error(f'slot-monitor: {alert.email} - something went wrong while sending the alert')
+                    logger.exception(e)
+
+            # sleep for 3 seconds between alerts
+            await asyncio.sleep(3)
+
+        # sleep for 3 seconds between batches
+        await asyncio.sleep(settings.SLOT_MONITOR_SLEEP_TIMER)
+
+    logger.info('slot-monitor: stopped')

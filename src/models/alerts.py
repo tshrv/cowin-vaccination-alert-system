@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Union
 
 from pydantic import EmailStr, Field
@@ -15,8 +16,10 @@ class AlertIn(SerializableBaseModel):
     min_age_limit: Optional[int] = None
     vaccine: Optional[Vaccine] = None
     dose: Optional[Dose] = None
-    status: Optional[AlertStatus] = AlertStatus.ACTIVE
 
 
 class Alert(AlertIn):
     id: ObjectId = Field(..., alias='_id')
+    created_at: datetime
+    status: Optional[AlertStatus] = AlertStatus.ACTIVE
+
