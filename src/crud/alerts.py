@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from src.models.alerts import Alert
@@ -30,7 +31,12 @@ class AlertCRUD(BaseCRUD):
         :param alert_obj:
         :return:
         """
-        rsp = self.collection.insert(alert_obj.dict())
+        data_dict = {
+            'created_at': datetime.utcnow(),
+            'status': AlertStatus.ACTIVE.value,
+            **alert_obj.dict()
+        }
+        rsp = self.collection.insert(data_dict)
         return rsp
 
     def get(self, email: str) -> List[Alert]:

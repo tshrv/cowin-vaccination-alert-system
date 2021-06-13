@@ -31,7 +31,7 @@ class Logger:
         :return: None
         """
 
-        os.mkdir(settings.LOG_FILE_DIR)
+        os.makedirs(settings.LOG_FILE_DIR, exist_ok=True)
 
         if self._logger:
             return

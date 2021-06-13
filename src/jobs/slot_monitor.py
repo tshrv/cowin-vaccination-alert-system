@@ -1,14 +1,12 @@
-from datetime import datetime, timedelta
+import asyncio
 
 from src import settings
 from src.cowin import CowinAPI
 from src.cowin.constants import Dose, Vaccine
-from src.crud.notifications import NotificationCRUD
 from src.crud.alerts import AlertCRUD
-from src.models.notifications import Notification
+from src.crud.notifications import NotificationCRUD
+from src.models.notifications import NotificationIn
 from src.utils.logging import logger
-import asyncio
-
 from src.utils.sms import twilio_client
 
 
@@ -47,8 +45,7 @@ async def slot_monitor():
                 logger.info(f'slot-monitor: {alert.email} - no slots available')
                 continue
 
-            logger.info(f'slot-monitor: {alert.email} - slots available')
-            logger.info(f'slot-monitor: {alert.email} - preparing to send alert')
+            logger.info(f'slot-monitor: {alert.email} - slots available, preparing to send alert')
 
             message = '\nHey! Vaccination slots are available, book your appointment now.\n'
             for center in centers:
@@ -62,21 +59,20 @@ async def slot_monitor():
 
             # message sender
             message += '- Sent via CVAS'
-            
-            ls = notification_crud.get(
-                    phone=alert.phone,
-                    message=message,
-                    created_at=datetime.now(settings.TIMEZONE) - timedelta(seconds=6)
+
+            # send alert only if current alert message was not sent previously in resend window
+            previously_sent = notification_crud.previously_sent(
+                phone=alert.phone,
+                message=message,
             )
-            logger.info(f'here it is ################### {ls}')
-            
-            # send alert only if current alert message is different than the last sent alert
-            if ls:
-                logger.info(f'slot-monitor: {alert.email} - last sent under 6 seconds, ignoring')
+
+            if previously_sent:
+                logger.info(f'slot-monitor: {alert.email} - last sent under {settings.RESEND_WINDOW} '
+                            f'seconds, alert ignored')
 
             else:
                 # save alert entry
-                notification = Notification(
+                notification = NotificationIn(
                     email=alert.email,
                     phone=alert.phone,
                     message=message,
@@ -100,7 +96,10 @@ async def slot_monitor():
                     logger.error(f'slot-monitor: {alert.email} - something went wrong while sending the alert')
                     logger.exception(e)
 
-            # sleep for 3 seconds
+            # sleep for 3 seconds between alerts
             await asyncio.sleep(3)
+
+        # sleep for 3 seconds between batches
+        await asyncio.sleep(settings.SLOT_MONITOR_SLEEP_TIMER)
 
     logger.info('slot-monitor: stopped')

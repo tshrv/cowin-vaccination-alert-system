@@ -17,15 +17,20 @@ class TwilioClient:
         """
         message_sent = False
         try:
-            resp = self.client.messages.create(
-                body=body,
-                from_=self.sender_number,
-                to=recipient
-            )
-            if resp.error_code or resp.error_message:
-                logger.error(f'twilio - failed to send sms to {recipient}, {resp.error_message}:{resp.error_code}')
+            if settings.TWILIO_ENABLED:
+                resp = self.client.messages.create(
+                    body=body,
+                    from_=self.sender_number,
+                    to=recipient
+                )
+                if resp.error_code or resp.error_message:
+                    logger.error(f'twilio: failed to send sms to {recipient}, {resp.error_message}:{resp.error_code}')
+                else:
+                    message_sent = True
             else:
+                logger.info(f'twilio: {recipient} - sms sent')
                 message_sent = True
+
         except Exception as e:
             logger.exception(e)
         return message_sent
